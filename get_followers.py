@@ -35,12 +35,11 @@ def get_followers(screen_names_list):
             "screen_name={}".format(screen_name) + "&count=200" + "&cursor={}".format(cursor)
             response = requests.get(url,
                                     auth=oauth)
-            
-            print(response.json()['users'])
+
             
             with open('data/seed_followers/followers_{}_{}.json'.format(screen_name,time.strftime("%y%m%d")), 'a') as tf:           
                 # Write the json data directly to the file
-                json.dump('\n'.join(response.json()['users']), tf)
+                json.dump(response.json()['users'], tf)
                  # Write a new line
                 tf.write('\n')
         
