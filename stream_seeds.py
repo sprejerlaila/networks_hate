@@ -22,12 +22,11 @@ class StreamListener(tweepy.StreamListener):
     def on_status(self, status):
         #with open(self.output_file, 'a') as tf:
         with open('data/seed_tweets/seed_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
-            # Write a new line
-            tf.write('\n')
-
+            
             # Write the json data directly to the file
             json.dump(status._json, tf)
-            # Alternatively: tf.write(json.dumps(all_data))
+            
+            tf.write('\n')
         
         print(status.text)
 
