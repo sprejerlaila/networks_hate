@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 from accessPoints_Sprejer import TwitterAuth52 as auth
 from requests_oauthlib import OAuth1
+import json
 
 
 oauth = OAuth1(auth.consumer_key,
@@ -30,10 +31,8 @@ class get_user_tweets():
     def __init__(self, user, day):
         self.user = user
         self.day = day
-        self.results = []
         self.get_timeline()
         self.get_mentions()
-        self.results = pd.concat(self.results)
 
         
     def get_timeline(self):
@@ -41,8 +40,13 @@ class get_user_tweets():
                         params = {"screen_name": self.user},
                         auth=oauth)
         
-        self.results.append(structure_tweets(response.json()))
-
+        for tweet in response.json():
+            with open('data/rest_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
+            
+                # Write the json data directly to the file
+                json.dump(tweet, tf)
+                
+                tf.write('\n')
 
     def get_mentions(self):
         next_page_url = "https://api.twitter.com/1.1/search/tweets.json"
@@ -52,8 +56,15 @@ class get_user_tweets():
                                 auth=oauth)
 
             response = response.json()
+            
+            for tweet in response['statuses']:
+                with open('data/rest_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
+                
+                    # Write the json data directly to the file
+                    json.dump(tweet, tf)
+                    
+                    tf.write('\n')
 
-            self.results.append(structure_tweets(response['statuses']))
             if response['statuses'][-1]['created_at'].split()[2] != self.day:
                 break    
             next_page_url = "https://api.twitter.com/1.1/search/tweets.json" \
