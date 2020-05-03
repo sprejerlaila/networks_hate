@@ -17,10 +17,8 @@ api = tweepy.API(oauth)
 class StreamListener(tweepy.StreamListener):
     def __init__(self, output_file=sys.stdout):
         super(StreamListener,self).__init__()
-        self.output_file = output_file
         
     def on_status(self, status):
-        #with open(self.output_file, 'a') as tf:
         with open('data/seed_tweets/seed_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
             
             # Write the json data directly to the file
