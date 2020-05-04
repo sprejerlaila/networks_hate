@@ -31,15 +31,15 @@ def get_followers(screen_names_list):
                 times = times[1:] # remove the initial time 
                         
             times.append(time.time()) # adding time of the new request
-            url = "https://api.twitter.com/1.1/followers/list.json?" + \
-            "screen_name={}".format(screen_name) + "&count=200" + "&cursor={}".format(cursor)
+            url = "https://api.twitter.com/1.1/followers/ids.json?" + \
+            "screen_name={}".format(screen_name) + "&count=5000" + "&cursor={}".format(cursor)
             response = requests.get(url,
                                     auth=oauth)
 
             
             with open('data/seed_followers/followers_{}_{}.json'.format(screen_name,time.strftime("%y%m%d")), 'a') as tf:           
                 # Write the json data directly to the file
-                json.dump(response.json()['users'], tf)
+                json.dump(response.json()['ids'], tf)
                  # Write a new line
                 tf.write('\n')
         
