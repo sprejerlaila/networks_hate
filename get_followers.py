@@ -1,4 +1,3 @@
-import json
 import time
 import requests
 from requests_oauthlib import OAuth1
@@ -36,13 +35,10 @@ def get_followers(screen_names_list):
             response = requests.get(url,
                                     auth=oauth)
 
-            
-            with open('data/seed_followers/followers_{}_{}.json'.format(screen_name,time.strftime("%y%m%d")), 'a') as tf:           
-                # Write the json data directly to the file
-                json.dump(response.json()['ids'], tf)
-                 # Write a new line
-                tf.write('\n')
-        
+            with open('data/seed_followers/followers_{}_{}.csv'.format(screen_name,time.strftime("%y%m%d")), 'a') as f: 
+                for follower_id in response.json()['ids']:
+                    f.write("%s\n" % follower_id)
+                        
             cursor = response.json()['next_cursor']
             
 if __name__ == "__main__":
