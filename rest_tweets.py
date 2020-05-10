@@ -28,16 +28,18 @@ def structure_tweets(results):
 
 class get_user_tweets():
     
-    def __init__(self, user, day):
+    def __init__(self, user, since, until=None):
         self.user = user
-        self.day = day
+        self.since = time.strptime(since, '%Y-%m-%d')
+        self.until = until
         self.get_timeline()
         self.get_mentions()
+        
 
         
     def get_timeline(self):
         response = requests.get("https://api.twitter.com/1.1/statuses/user_timeline.json",
-                        params = {"screen_name": self.user},
+                        params = {"screen_name": self.user, "tweet_mode": "extended"},
                         auth=oauth)
         
         for tweet in response.json():
@@ -52,7 +54,7 @@ class get_user_tweets():
         next_page_url = "https://api.twitter.com/1.1/search/tweets.json"
         while True:
             response = requests.get(next_page_url,
-                                params = {"q": self.user, "count":200},
+                                params = {"q": self.user, "count":200, "until":self.until, "tweet_mode": "extended"},
                                 auth=oauth)
 
             response = response.json()
@@ -64,8 +66,8 @@ class get_user_tweets():
                     json.dump(tweet, tf)
                     
                     tf.write('\n')
-
-            if response['statuses'][-1]['created_at'].split()[2] != self.day:
+            date = time.strptime(response['statuses'][-1]['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
+            if date < self.since:
                 break    
             next_page_url = "https://api.twitter.com/1.1/search/tweets.json" \
             + response['search_metadata']['next_results']
