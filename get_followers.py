@@ -1,11 +1,11 @@
 import time
+import pandas as pd
 import requests
 from requests_oauthlib import OAuth1
 from accessPoints_Sprejer import TwitterAuth51 as auth
 
-with open('seed_users.txt') as file:
-    users = file.read().splitlines()
-users = [user.replace("@","") for user in users]
+
+users = list(pd.read_csv("seed_users.csv").user.values)
 
 
 oauth = OAuth1(auth.consumer_key,

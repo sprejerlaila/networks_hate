@@ -1,14 +1,12 @@
 import tweepy
+import pandas as pd
 import sys
 import json
 import time
-from accessPoints_Sprejer import TwitterAuth50 as auth
+from accessPoints_Sprejer import TwitterAuth51 as auth
 
-with open('seed_ids.txt') as file:
-    ids = file.read().splitlines()
-
-with open('seed_users.txt') as file:
-    users = file.read().splitlines()
+ids = list(pd.read_csv("seed_users.csv",converters={'id': str}).id.values)
+users = list(pd.read_csv("seed_users.csv").user.values)
     
 oauth = tweepy.OAuthHandler(auth.consumer_key, auth.consumer_secret)
 oauth.set_access_token(auth.access_token, auth.access_token_secret)
