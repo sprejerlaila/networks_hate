@@ -55,7 +55,7 @@ class get_tweets():
             
             for tweet in response['statuses']:
                 tw_date = time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
-                if True: #tw_date > self.since:
+                if tw_date > self.since:
                     with open('data/seed_tweets/rest_tweets_{}.json'.format(time.strftime("%y%m%d",self.since)), 'a') as tf:
                     
                         # Write the json data directly to the file
