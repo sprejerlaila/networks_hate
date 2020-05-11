@@ -124,7 +124,8 @@ class process_tweets():
         seed_tweets = self.tweets[self.tweets.screen_name.isin(users)]
         
         # Write full dataframe
-        seed_tweets.to_csv("data/processed/seed_tweets/processed_seed_tweets_{}.csv".format(self.day_to_process), index=False)
+        seed_tweets.to_csv("data/processed/seed_tweets/processed_seed_tweets.csv", index=False, mode='a')
+        
         
         # Keep a list of seed tweets ids
         with open('data/processed/seed_tweets/seed_tweets_ids.csv', 'a') as f: 
@@ -137,7 +138,7 @@ class process_tweets():
             ids = file.read().splitlines()
         
         seed_reweets = self.tweets[self.tweets.rt_from_id.isin(ids)]
-        seed_reweets.to_csv("data/processed/seed_retweets/processed_seed_retweets_{}.csv".format(self.day_to_process), index=False)
+        seed_reweets.to_csv("data/processed/seed_retweets/processed_seed_retweets.csv", index=False, mode='a')
     
     
     
