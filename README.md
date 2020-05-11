@@ -5,7 +5,13 @@ Files:
   
   input: seed_users.csv
   
-	output: daily files saved to 'data/seed_tweets/seed_tweets_<date>.csv'
+	output: daily json files saved to 'data/seed_tweets/seed_tweets_<date>.json'
+	
+- **rest_tweets.py:**
+
+	input: seed_users.csv	
+  	
+	output: json files saved to 'data/seed_tweets/rest_tweets_<date>.json'
 	
 - **get_followers.py:** 
 
@@ -15,7 +21,7 @@ Files:
 	
 - **process_tweets.py:** 
 
-  input: date
+  input: date (automatically loads stream and rest raw tweets)
 
 	- tidy_tweets: converts raw tweets into dataframe
   
