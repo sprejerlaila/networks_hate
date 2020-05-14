@@ -5,8 +5,8 @@ import json
 import time
 from accessPoints_Sprejer import TwitterAuth50 as auth
 
-ids = list(pd.read_csv("seed_users.csv",converters={'id': str}).id.values)
-users = list(pd.read_csv("seed_users.csv").user.values)
+ids = list(pd.read_csv("data/seed_users.csv",converters={'id': str}).user_id.values)
+users = list(pd.read_csv("data/seed_users.csv").screen_name.values)
     
 oauth = tweepy.OAuthHandler(auth.consumer_key, auth.consumer_secret)
 oauth.set_access_token(auth.access_token, auth.access_token_secret)
