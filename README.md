@@ -15,6 +15,8 @@ Files:
 	
 - **get_followers.py:** 
 
+	Rate limit: 5000/req. 15 req in 15 min window. --> 7.2M a day
+
 	input: seed_users.csv
   
   output: daily files saved to 'data/seed_folllowers/followers_<date>.csv'
