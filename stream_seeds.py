@@ -3,7 +3,7 @@ import pandas as pd
 import sys
 import json
 import time
-from accessPoints_Sprejer import TwitterAuth51 as auth
+from accessPoints_Sprejer import TwitterAuth50 as auth
 
 ids = list(pd.read_csv("seed_users.csv",converters={'id': str}).id.values)
 users = list(pd.read_csv("seed_users.csv").user.values)
