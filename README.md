@@ -5,21 +5,37 @@ Files:
   
   input: seed_users.csv
   
-	output: daily json files saved to 'data/seed_tweets/seed_tweets_<date>.json'
+	output: stream_tweets_\<date\>.json
 	
 - **rest_tweets.py:**
 
 	input: seed_users.csv	
   	
-	output: json files saved to 'data/seed_tweets/rest_tweets_<date>.json'
+	output: rest_tweets_\<date\>.json
 	
 - **get_followers.py:** 
 
 	Rate limit: 5000/req. 15 req in 15 min window. --> 7.2M a day
 
-	input: seed_users.csv
+	input: seed_users.csv; retweeters_users.csv
   
-  output: daily files saved to 'data/seed_folllowers/followers_<date>.csv'
+  output: followers_\<user_id\>_\<date\>.csv
+	
+- **get_friends.py:** 
+
+	Rate limit: 5000/req. 15 req in 15 min window. --> 7.2M a day
+
+	input: seed_users.csv; retweeters_users.csv
+  
+  output: friends_\<user_id\>_\<date\>.csv
+  
+- **get_profiles.py:** 
+
+	Rate limit: 900 req in 15 min window. Runs offline
+
+	input: seed_users.csv; retweeters_users.csv
+  
+  output: update seed_profiles.json; retweeters_profiles.json
 	
 - **process_tweets.py:** 
 
@@ -29,13 +45,15 @@ Files:
   
 	- extract_seed_tweets: 
   
-      output1: dataframe with seed_tweets
+      output1: update seed_tweets.csv (dataframe with tweets from seed users)
     
-      output2: list with seed_tweets ids
+      output2: update seed_tweets_ids.csv (list with seed_tweets ids)
   
   - extract_seed_retweets:
   
-      input: seed_tweets id list
+      input: seed_tweets_ids.csv
     
-      output: dataframe with relevant retweets
+      output1: update retweets_from_seeds.csv (dataframe with relevant retweets)
+      
+      output2: update retweeters_users.csv (dataframe with screen_name and user_id from all retweeters)
     
