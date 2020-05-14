@@ -104,16 +104,16 @@ def tidy_tweets(raw_tweets):
     
     return data
 
-users = list(pd.read_csv("seed_users.csv").user.values)
+users = list(pd.read_csv("data/seed_users.csv").screen_name.values)
 
 class process_tweets():
     def __init__(self, day_to_process):
         self.day_to_process = day_to_process
-        with open('data/seed_tweets/seed_tweets_{}.json'.format(day_to_process)) as json_data:
+        with open('data/raw/seed_tweets/seed_tweets_{}.json'.format(day_to_process)) as json_data:
             stream_tweets = json_data.readlines()
         stream_tweets = tidy_tweets(stream_tweets)
         
-        with open('data/seed_tweets/rest_tweets_{}.json'.format(day_to_process)) as json_data:
+        with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(day_to_process)) as json_data:
             rest_tweets = json_data.readlines()
         rest_tweets = tidy_tweets(rest_tweets)
 
@@ -131,30 +131,31 @@ class process_tweets():
         # Write full dataframe
         seed_tweets.to_csv("data/processed/seed_tweets/processed_seed_tweets.csv", index=False, mode='a')
         
-        print("Extracting seed tweets_id list, saving to data/processed/seed_tweets/seed_tweets_ids.csv")
+        print("Extracting seed tweets_id list, saving to data/seed_tweets_ids.csv")
         # Keep a list of seed tweets ids
-        with open('data/processed/seed_tweets/seed_tweets_ids.csv', 'a') as f: 
+        with open('data/seed_tweets_ids.csv', 'a') as f: 
             for tweet_id in seed_tweets.id.values:
                     f.write("%s\n" % tweet_id)
         
     def extract_seed_retweets(self):
         print("Extracting retweets from seeds df, saving to data/processed/seed_retweets/retweets_from_seeds.csv")
-        with open('data/processed/seed_tweets/seed_tweets_ids.csv') as file:
+        with open('data/seed_tweets_ids.csv') as file:
             ids = file.read().splitlines()
         
         seed_reweets = self.tweets[self.tweets.rt_from_id.isin(ids)]
         seed_reweets.to_csv("data/processed/seed_retweets/retweets_from_seeds.csv", index=False, mode='a')
         
         
-        print("Extracting retweeters screen_name and id, saving to data/processed/retweeters_users.csv")
-        if 'retweeters_users.csv' in os.listdir('data/processed/seed_tweets/'):
-            current_retweeters = pd.read_csv('data/processed/seed_tweets/retweeters_users.csv')
-            all_retweeters = pd.concat([seed_reweets[["screen_name","user_id"]],current_retweeters]).reset_index(drop=True).drop_duplicates()
+        print("Extracting retweeters screen_name and id, saving to data/retweeters_users.csv")
+        if 'retweeters_users.csv' in os.listdir('data/'):
+            current_retweeters = pd.read_csv('data/retweeters_users.csv')
+            new_retweeters = seed_reweets[~seed_reweets.id.isin(current_retweeters.user_id)][["screen_name","user_id"]]
+            all_retweeters = pd.concat([current_retweeters, new_retweeters]).reset_index(drop=True)
         
         else:
             all_retweeters = seed_reweets[["screen_name","user_id"]].drop_duplicates()
         
-        all_retweeters.to_csv('data/processed/seed_tweets/retweeters_users.csv', index=False)
+        all_retweeters.to_csv('data/retweeters_users.csv', index=False)
 
         
     
