@@ -6,15 +6,13 @@ Created on Thu May 14 10:05:41 2020
 @author: lailasprejer
 """
 import time
+import os
 import json
 import pandas as pd
 import requests
 from requests_oauthlib import OAuth1
 from accessPoints_Sprejer import TwitterAuth54 as auth
 
-
-seed_users = list(pd.read_csv("data/seed_users.csv").user_id.values)
-retweeters_users = list(pd.read_csv("data/retweeters_users.csv").user_id.values)
 
 oauth = OAuth1(auth.consumer_key,
                auth.consumer_secret,
@@ -46,4 +44,37 @@ def get_profiles(screen_names_list, n_seeds):
             f.write('\n')
                         
 if __name__ == "__main__":
-    get_profiles(seed_users + retweeters_users, n_seeds = len(seed_users))
+    seed_users = list(pd.read_csv("data/seed_users.csv").user_id.values)
+    retweeters_users = list(pd.read_csv("data/retweeters_users.csv").user_id.values)
+
+    if 'seed_profiles.json' in os.listdir('data/'):
+        with open('data/seed_profiles.json') as json_data:
+            n_seed_profiles = len(json_data.readlines())
+            
+        if n_seed_profiles >= len(seed_users):
+            seed_users = []
+        else:
+            seed_users = seed_users[-(len(seed_users) - n_seed_profiles):]
+    
+    
+    if 'retweeters_profiles.json' in os.listdir('data/'):    
+        with open('data/retweeters_profiles.json') as json_data:
+            n_retweeters_profiles = len(json_data.readlines())
+        
+        if n_retweeters_profiles >= len(retweeters_users):
+            retweeters_users = []
+        else:
+            retweeters_users = seed_users[-(len(retweeters_users) - n_retweeters_profiles):]
+            
+    if len(seed_users + retweeters_users) == 0:
+        print("No new users added")
+    
+    else:
+        get_profiles(seed_users + retweeters_users, n_seeds = len(seed_users))
+        
+    
+    
+    
+    
+    
+    
