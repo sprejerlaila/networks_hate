@@ -5,8 +5,8 @@ from requests_oauthlib import OAuth1
 from accessPoints_Sprejer import TwitterAuth51 as auth
 
 
-users = list(pd.read_csv("seed_users.csv").user.values)
-
+seed_users = list(pd.read_csv("data/seed_users.csv").screen_name.values)
+retweeters_users = list(pd.read_csv("data/retweeters_users.csv").screen_name.values)
 
 oauth = OAuth1(auth.consumer_key,
                auth.consumer_secret,
@@ -14,10 +14,11 @@ oauth = OAuth1(auth.consumer_key,
                auth.access_token_secret)
 
 
-def get_followers(screen_names_list):
+def get_followers(screen_names_list, n_seeds):
     times = [] # Control not exceeding the rate limit
     
-    for screen_name in screen_names_list:
+    for idx, screen_name in enumerate(screen_names_list):
+        user_type = "seed" if idx < n_seeds else "retweeters"
         print(screen_name)
         cursor = -1 # Controls pagination
         
@@ -35,14 +36,14 @@ def get_followers(screen_names_list):
             response = requests.get(url,
                                     auth=oauth)
 
-            with open('data/seed_followers/followers_{}_{}.csv'.format(screen_name,time.strftime("%y%m%d")), 'a') as f: 
+            with open('data/processed/{}_followers/followers_{}_{}.csv'.format(user_type, screen_name,time.strftime("%y%m%d")), 'a') as f: 
                 for follower_id in response.json()['ids']:
                     f.write("%s\n" % follower_id)
                         
             cursor = response.json()['next_cursor']
             
 if __name__ == "__main__":
-    get_followers(users)
+    get_followers(seed_users + retweeters_users, n_seeds = len(seed_users))
 
     
 
