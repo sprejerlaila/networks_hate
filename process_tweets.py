@@ -125,11 +125,11 @@ class process_tweets():
     
         
     def extract_seed_tweets(self):
-        print("Extracting seed tweets df, saving to data/processed/seed_tweets/processed_seed_tweets.csv")
+        print("Extracting seed tweets df, saving to data/processed/seed_tweets/seed_tweets.csv")
         seed_tweets = self.tweets[self.tweets.screen_name.isin(users)]
         
         # Write full dataframe
-        seed_tweets.to_csv("data/processed/seed_tweets/processed_seed_tweets.csv", index=False, mode='a')
+        seed_tweets.to_csv("data/processed/seed_tweets/seed_tweets.csv", index=False, mode='a')
         
         print("Extracting seed tweets_id list, saving to data/seed_tweets_ids.csv")
         # Keep a list of seed tweets ids
