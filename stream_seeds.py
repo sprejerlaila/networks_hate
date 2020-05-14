@@ -17,7 +17,7 @@ class StreamListener(tweepy.StreamListener):
         super(StreamListener,self).__init__()
         
     def on_status(self, status):
-        with open('data/seed_tweets/seed_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
+        with open('data/seed_tweets/stream_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
             
             # Write the json data directly to the file
             json.dump(status._json, tf)
