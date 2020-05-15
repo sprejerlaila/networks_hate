@@ -61,7 +61,6 @@ if __name__ == "__main__":
         with open('data/retweeters_profiles.json') as json_data:
             n_retweeters_profiles = len(json_data.readlines())
         
-        print(n_retweeters_profiles, len(retweeters_users))
         if n_retweeters_profiles >= len(retweeters_users):
             retweeters_users = []
         else:
