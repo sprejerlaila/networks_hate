@@ -61,10 +61,11 @@ if __name__ == "__main__":
         with open('data/retweeters_profiles.json') as json_data:
             n_retweeters_profiles = len(json_data.readlines())
         
+        print(n_retweeters_profiles, len(retweeters_users))
         if n_retweeters_profiles >= len(retweeters_users):
             retweeters_users = []
         else:
-            retweeters_users = seed_users[-(len(retweeters_users) - n_retweeters_profiles):]
+            retweeters_users = retweeters_users[-(len(retweeters_users) - n_retweeters_profiles):]
             
     if len(seed_users + retweeters_users) == 0:
         print("No new users added")
