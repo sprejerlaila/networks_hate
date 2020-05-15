@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import time
 import os
+import datetime as dt
 
     
 def tidy_tweets(raw_tweets):
@@ -109,7 +110,7 @@ users = list(pd.read_csv("data/seed_users.csv").screen_name.values)
 class process_tweets():
     def __init__(self, day_to_process):
         self.day_to_process = day_to_process
-        with open('data/raw/seed_tweets/seed_tweets_{}.json'.format(day_to_process)) as json_data:
+        with open('data/raw/seed_tweets/stream_tweets_{}.json'.format(day_to_process)) as json_data:
             stream_tweets = json_data.readlines()
         stream_tweets = tidy_tweets(stream_tweets)
         
@@ -142,24 +143,27 @@ class process_tweets():
         with open('data/seed_tweets_ids.csv') as file:
             ids = file.read().splitlines()
         
-        seed_reweets = self.tweets[self.tweets.rt_from_id.isin(ids)]
-        seed_reweets.to_csv("data/processed/seed_retweets/retweets_from_seeds.csv", index=False, mode='a')
+        seed_retweets = self.tweets[self.tweets.rt_from_id.isin(ids)]
+        seed_retweets.to_csv("data/processed/seed_retweets/retweets_from_seeds.csv", index=False, mode='a')
         
         
         print("Extracting retweeters screen_name and id, saving to data/retweeters_users.csv")
         if 'retweeters_users.csv' in os.listdir('data/'):
             current_retweeters = pd.read_csv('data/retweeters_users.csv')
-            new_retweeters = seed_reweets[~seed_reweets.id.isin(current_retweeters.user_id)][["screen_name","user_id"]]
+            new_retweeters = seed_retweets[~seed_retweets.user_id.isin(current_retweeters.user_id)][["screen_name","user_id"]]
+            new_retweeters = new_retweeters.drop_duplicates()
             all_retweeters = pd.concat([current_retweeters, new_retweeters]).reset_index(drop=True)
         
         else:
-            all_retweeters = seed_reweets[["screen_name","user_id"]].drop_duplicates()
+            all_retweeters = seed_retweets[["screen_name","user_id"]].drop_duplicates()
         
         all_retweeters.to_csv('data/retweeters_users.csv', index=False)
 
         
     
-    
-    
+if __name__ == "__main__":
+    yesterday = dt.datetime.strftime(dt.datetime.now() - dt.timedelta(1), '%y%m%d')
+    #process_tweets(day_to_process=yesterday)    
+    process_tweets(day_to_process="200514")    
     
     
