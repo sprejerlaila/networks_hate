@@ -7,7 +7,7 @@ Files:
   
 	output: stream_tweets_\<date\>.json
 	
-- **rest_tweets.py:**
+- **rest_tweets.py:** 
 
 	input: seed_users.csv	
   	
@@ -15,7 +15,7 @@ Files:
 	
 - **get_followers.py:** 
 
-	Rate limit: 5000/req. 15 req in 15 min window. --> 7.2M a day
+	Rate limit: 5000/req. 15 req in 15 min window. --> max 7.2M followers or 1,440 users a day
 
 	input: seed_users.csv; retweeters_users.csv
   
@@ -23,7 +23,7 @@ Files:
 	
 - **get_friends.py:** 
 
-	Rate limit: 5000/req. 15 req in 15 min window. --> 7.2M a day
+	Rate limit: 5000/req. 15 req in 15 min window. --> max 7.2M followers or 1,440 users a day
 
 	input: seed_users.csv; retweeters_users.csv
   
@@ -31,7 +31,7 @@ Files:
   
 - **get_profiles.py:** 
 
-	Rate limit: 900 req in 15 min window. Runs offline
+	Rate limit: 900 req in 15 min window. Runs offline --> max 86,400 users a day
 
 	input: seed_users.csv; retweeters_users.csv
   
