@@ -30,10 +30,9 @@ class get_tweets():
 
         
     def get_timeline(self, user_id):
-        #TODO add pagination!!! 
         until = time.strptime(self.until, '%Y-%m-%d')
         response = requests.get("https://api.twitter.com/1.1/statuses/user_timeline.json",
-                        params = {"user_id": user_id, "tweet_mode": "extended"},
+                        params = {"user_id": user_id, "tweet_mode": "extended", "count":200},
                         auth=oauth)
         
         for tweet in response.json():
