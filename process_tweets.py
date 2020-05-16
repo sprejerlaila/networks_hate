@@ -163,7 +163,6 @@ class process_tweets():
     
 if __name__ == "__main__":
     yesterday = dt.datetime.strftime(dt.datetime.now() - dt.timedelta(1), '%y%m%d')
-    #process_tweets(day_to_process=yesterday)    
-    process_tweets(day_to_process="200514")    
+    process_tweets(day_to_process=yesterday)        
     
     
