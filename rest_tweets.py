@@ -31,19 +31,25 @@ class get_tweets():
         
     def get_timeline(self, user_id):
         until = time.strptime(self.until, '%Y-%m-%d')
-        response = requests.get("https://api.twitter.com/1.1/statuses/user_timeline.json",
-                        params = {"user_id": user_id, "tweet_mode": "extended", "count":200},
-                        auth=oauth)
-        
-        for tweet in response.json():
-            tw_date = time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
-            if tw_date > self.since and tw_date < until:
-                with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(time.strftime("%y%m%d", self.since)), 'a') as tf:
-                
-                    # Write the json data directly to the file
-                    json.dump(tweet, tf)
+        max_id = None
+        while True:
+            response = requests.get("https://api.twitter.com/1.1/statuses/user_timeline.json",
+                            params = {"user_id": user_id, "tweet_mode": "extended", "count":200, "max_id":max_id},
+                            auth=oauth)
+            
+            for tweet in response.json():
+                tw_date = time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
+                if tw_date > self.since and tw_date < until:
+                    with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(time.strftime("%y%m%d", self.since)), 'a') as tf:
                     
-                    tf.write('\n')
+                        # Write the json data directly to the file
+                        json.dump(tweet, tf)
+                        
+                        tf.write('\n')
+            if tw_date < self.since:
+                break
+            else:
+                max_id = tweet['id']
 
     def get_mentions(self, screen_name):
         next_page_url = "https://api.twitter.com/1.1/search/tweets.json"
