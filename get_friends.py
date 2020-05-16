@@ -19,15 +19,13 @@ def get_friends(user_id_list, n_seeds):
     
     for idx, user_id in enumerate(user_id_list):
         user_type = "seed" if idx < n_seeds else "retweeters"
-        print(user_id)
         cursor = -1 # Controls pagination
         
         while cursor != 0: # When cursos == 0 means end of pagination
-            print(cursor)
             if len(times) == 15: # if 15 requests were already done
                 if times[-1] - times[0] < 900: # check not exceding the rate limit
                     print("waiting the needed time before continuing")
-                    time.sleep(900-(times[-1] - times[0])) # wait the rest of the 15 minutes
+                    time.sleep(901-(times[-1] - times[0])) # wait the rest of the 15 minutes
                 times = times[1:] # remove the initial time 
                         
             times.append(time.time()) # adding time of the new request
@@ -35,11 +33,12 @@ def get_friends(user_id_list, n_seeds):
             "user_id={}".format(user_id) + "&count=5000" + "&cursor={}".format(cursor)
             response = requests.get(url,
                                     auth=oauth)
-
-            with open('data/processed/{}_friends/friends_{}_{}.csv'.format(user_type,user_id,time.strftime("%y%m%d")), 'a') as f: 
-                for friend_id in response.json()['ids']:
-                    f.write("%s\n" % friend_id)
-                        
+            try:
+                with open('data/processed/{}_friends/{}_friends_{}.csv'.format(user_type,user_type,time.strftime("%y%m%d")), 'a') as f: 
+                    for friend_id in response.json()['ids']:
+                        f.write(str(user_id) + "," + str(friend_id) + "\n")
+            except:
+                print(user_id, response.json())
             cursor = response.json()['next_cursor']
             
 if __name__ == "__main__":
