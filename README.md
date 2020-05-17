@@ -12,6 +12,14 @@ Files:
 	input: seed_users.csv	
   	
 	output: rest_tweets_\<date\>.json
+	
+	- get_timeline():
+	
+		Rate limit: 200tw/req. 900 req in 15 min window. --> 86,400 requests a day
+	
+	- get_mentions():
+	
+		Rate limit: 200tw/req. 180 req in 15 min window. --> 17,280 requests a day
 
 - **process_tweets.py:** 
 
