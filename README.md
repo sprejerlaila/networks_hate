@@ -48,7 +48,7 @@ Files:
 
 	input: seed_users.csv; retweeters_users.csv
   
-  output: \<seed|retweeters\>_followers_\<date\>.csv
+  output: \<seed|retweeters\>\_followers_\<date\>.csv
 	
 - **get_friends.py:** 
 
@@ -56,7 +56,7 @@ Files:
 
 	input: seed_users.csv; retweeters_users.csv
   
-  output: \<seed|retweeters\>_friends_\<date\>.csv
+  output: \<seed|retweeters\>\_friends_\<date\>.csv
   
 - **get_profiles.py:** 
 
