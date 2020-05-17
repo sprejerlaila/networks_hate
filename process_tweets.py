@@ -116,7 +116,7 @@ class process_tweets():
         
         with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(day_to_process)) as json_data:
             rest_tweets = json_data.readlines()
-        rest_tweets = tidy_tweets(rest_tweets)
+        rest_tweets = tidy_tweets(rest_tweets).drop_duplicates('id').reset_index(drop=True)
 
         
         self.tweets = pd.concat([stream_tweets, rest_tweets[~rest_tweets.id.isin(stream_tweets.id)]]).reset_index(drop=True)
