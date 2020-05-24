@@ -9,7 +9,11 @@ from accessPoints_Sprejer import TwitterAuth44 as auth0
 from accessPoints_Sprejer import TwitterAuth45 as auth1
 
 seed_users = list(pd.read_csv("data/seed_users.csv").user_id.values)
-retweeters_users = list(pd.read_csv("data/retweeters_users.csv").user_id.values)
+
+
+retweeters = pd.read_csv("data/retweeters_users.csv")
+# get only new retweeters
+retweeters_users = list(retweeters[retweeters.get_followers == "Not collected"].user_id.values)
 
 
 oauth_seed = OAuth1(auth_seed.consumer_key, auth_seed.consumer_secret, auth_seed.access_token, auth_seed.access_token_secret)

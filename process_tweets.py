@@ -152,10 +152,14 @@ class process_tweets():
             current_retweeters = pd.read_csv('data/retweeters_users.csv')
             new_retweeters = seed_retweets[~seed_retweets.user_id.isin(current_retweeters.user_id)][["screen_name","user_id"]]
             new_retweeters = new_retweeters.drop_duplicates()
+            new_retweeters['get_followers'] = "Not collected"
             all_retweeters = pd.concat([current_retweeters, new_retweeters]).reset_index(drop=True)
+
         
         else:
             all_retweeters = seed_retweets[["screen_name","user_id"]].drop_duplicates()
+            # Set flag for followers collection
+            all_retweeters['get_followers'] = "Not collected"
         
         all_retweeters.to_csv('data/retweeters_users.csv', index=False)
 

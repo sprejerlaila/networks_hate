@@ -12,7 +12,12 @@ from accessPoints_Sprejer import TwitterAuth43 as auth2
 
 
 seed_users = list(pd.read_csv("data/seed_users.csv").user_id.values)
-retweeters_users = list(pd.read_csv("data/retweeters_users.csv").user_id.values)
+
+retweeters = pd.read_csv("data/retweeters_users.csv")
+# get only new retweeters
+retweeters_users = list(retweeters[retweeters.get_followers == "Not collected"].user_id.values)
+
+
 
 oauth_seed = OAuth1(auth_seed.consumer_key, auth_seed.consumer_secret, auth_seed.access_token, auth_seed.access_token_secret)
 
@@ -32,7 +37,6 @@ def get_followers(user_id_list, n_seeds, oauth=oauth0, n_group = 0, datetime=tim
         cursor = -1 # Controls pagination
         
         while cursor != 0: # When cursor == 0 means end of pagination
-            print("page 2 of same user")
             if len(times) == 15: # if 15 requests were already done
                 if times[-1] - times[0] < 900: # check not exceding the rate limit
                     print("waiting the needed time before continuing")
@@ -72,5 +76,7 @@ if __name__ == "__main__":
         get_followers(retweeters_users[n_group*n_per_group: (n_group+1)*n_per_group], n_seeds = 0,
                       oauth=oauth,
                       n_group = n_group)
-
+        
+        retweeters['get_followers'] = "Done"
+        retweeters.to_csv("data/retweeters_users.csv", index=False)
     
