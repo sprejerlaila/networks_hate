@@ -1,31 +1,48 @@
 import tweepy
 import pandas as pd
-import sys
 import json
 import time
 from accessPoints_Sprejer import TwitterAuth50 as auth
 
-ids = list(pd.read_csv("data/seed_users.csv").user_id.astype(str).values)
-users = list(pd.read_csv("data/seed_users.csv").screen_name.values)
+seed_users = pd.read_csv("data/seed_users.csv")
+ids = list(seed_users.user_id.astype(str).values)
+users = list(seed_users.screen_name.values)
+
+dict_users = {}
+for idx, user_id in enumerate(ids):
+    dict_users[user_id] = users[idx]
     
+
 oauth = tweepy.OAuthHandler(auth.consumer_key, auth.consumer_secret)
 oauth.set_access_token(auth.access_token, auth.access_token_secret)
 api = tweepy.API(oauth)
 
+class screen_name_error(Exception):
+    """Raise error if screen_name changed"""
+    def __init__(self, user_id, screen_name):
+        self.user_id = user_id
+        self.screen_name = screen_name
+
 class StreamListener(tweepy.StreamListener):
-    def __init__(self, output_file=sys.stdout):
+    def __init__(self, dict_users=dict_users):
         super(StreamListener,self).__init__()
         
     def on_status(self, status):
+
         with open('data/raw/seed_tweets/stream_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
             
             # Write the json data directly to the file
-            json.dump(status._json, tf)
+            tweet = status._json
+            json.dump(tweet, tf)
             
             tf.write('\n')
         
-        print(status.text)
-
+        #print(status.text)
+                
+        if tweet["user"]['id_str'] in dict_users: # Check if it is a seed tweet
+            if tweet["user"]['screen_name'] != dict_users[tweet["user"]['id_str']]: # Check if the screen_name changed
+                raise screen_name_error(tweet["user"]['id'], tweet["user"]['screen_name'])
+            
     def on_error(self, status_code):
         if status_code == 420:
             return False
@@ -38,6 +55,16 @@ if __name__ == "__main__":
         try:
             print("streaming...")
             stream.filter(follow=ids, track=users)
+        
+        except screen_name_error as screen_name_change:
+            print("Screen name changed", screen_name_change.user_id, screen_name_change.screen_name)
+            # Modify seed file
+            seed_users.loc[seed_users.user_id == screen_name_change.user_id, 'screen_name'] = screen_name_change.screen_name
+            seed_users.to_csv("data/seed_users.csv", index=False)
+            
+            # Modify screen_names list
+            users = list(seed_users.screen_name.astype(str).values)
+            
         except Exception:
             print("error. Restarting Stream... Error:")
             time.sleep(60)
