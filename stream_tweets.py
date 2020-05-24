@@ -5,7 +5,7 @@ import json
 import time
 from accessPoints_Sprejer import TwitterAuth50 as auth
 
-ids = list(pd.read_csv("data/seed_users.csv",converters={'id': str}).user_id.values)
+ids = list(pd.read_csv("data/seed_users.csv").user_id.astype(str).values)
 users = list(pd.read_csv("data/seed_users.csv").screen_name.values)
     
 oauth = tweepy.OAuthHandler(auth.consumer_key, auth.consumer_secret)
@@ -17,7 +17,7 @@ class StreamListener(tweepy.StreamListener):
         super(StreamListener,self).__init__()
         
     def on_status(self, status):
-        with open('data/seed_tweets/stream_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
+        with open('data/raw/seed_tweets/stream_tweets_{}.json'.format(time.strftime("%y%m%d")), 'a') as tf:
             
             # Write the json data directly to the file
             json.dump(status._json, tf)
