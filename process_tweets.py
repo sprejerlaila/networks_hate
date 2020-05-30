@@ -1,11 +1,12 @@
 import pandas as pd
+import numpy as np
 import json
 import time
 import os
 import datetime as dt
 
     
-def tidy_tweets(raw_tweets):
+def tidy_tweets(file_name):
     id_list = []
     screen_name_list = []
     user_id_list = []
@@ -23,72 +24,74 @@ def tidy_tweets(raw_tweets):
 
     retweet_count = []
     favorite_count = []
+    
+    with open(file_name) as json_data:
+        for idx, tweet in enumerate(json_data):
+            tweet = json.loads(tweet)
+            id_list.append(np.int32(tweet['id']))
 
-    for idx, tweet in enumerate(raw_tweets):       
-        tweet = json.loads(tweet)
-        id_list.append(tweet['id'])
-        
-        screen_name = tweet["user"]['screen_name']
-        screen_name_list.append(screen_name)
-        user_id = tweet["user"]['id']
-        user_id_list.append(user_id)
+            screen_name = tweet["user"]['screen_name']
+            screen_name_list.append(screen_name)
+            user_id = np.int32(tweet["user"]['id'])
+            user_id_list.append(user_id)
 
-        rp_user_id = tweet["in_reply_to_user_id"]
-        rp_screen_name = tweet["in_reply_to_screen_name"]
-        rp_status = tweet["in_reply_to_status_id"]
+            rp_user_id = np.int32(tweet["in_reply_to_user_id"]) if tweet["in_reply_to_user_id"] is not None else None
+            rp_screen_name = tweet["in_reply_to_screen_name"]
+            rp_status = np.int32(tweet["in_reply_to_status_id"]) if tweet["in_reply_to_status_id"] is not None else None
 
-        t = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))
-        datetime.append(t)
+            t = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))
+            datetime.append(t)
 
-        location.append(tweet['place'])
-        retweet_count.append(tweet['retweet_count']) #TODO replace with rt fav count when available
-        favorite_count.append(tweet['favorite_count']) #TODO replace with rt fav count when available
-        
-        text = tweet['text'] if "text" in tweet else tweet['full_text']
-        
-        rt_screen_name, rt_id, qt_id, qt_screen_name, qt_status = None, None, None, None, None
-        
-        mentions = set([x['screen_name'] for x in tweet['entities']['user_mentions']])
-        
-        if 'retweeted_status' in tweet: # It is a retweet 
-            text = tweet['retweeted_status']['text'] if 'text' in tweet['retweeted_status'] else tweet['retweeted_status']['full_text']
-            try:
-                text = tweet['retweeted_status']['extended_tweet']['full_text']
-                mentions = set([x['screen_name'] for x in tweet['retweeted_status']['extended_tweet']['entities']['user_mentions']])
-            except:
-                pass
-            rt_screen_name = tweet['retweeted_status']['user']['screen_name']
-            rt_id = tweet['retweeted_status']['id']
+            location.append(tweet['place'])
+            retweet_count.append(tweet['retweet_count']) #TODO replace with rt fav count when available
+            favorite_count.append(tweet['favorite_count']) #TODO replace with rt fav count when available
 
-        if 'quoted_status' in tweet: # In reply to tweet data
-            qt_id = tweet["quoted_status"]["user"]["id"]
-            qt_screen_name = tweet["quoted_status"]["user"]["screen_name"]
-            qt_status = tweet["quoted_status"]["text"] if 'text' in tweet['quoted_status'] else tweet['quoted_status']['full_text']
-            try:
-                qt_status = tweet["quoted_status"]["extended_tweet"]['full_text']
+            text = tweet['text'] if "text" in tweet else tweet['full_text']
 
-            except:
+            rt_screen_name, rt_id, qt_id, qt_screen_name, qt_status = None, None, None, None, None
+
+            mentions = set([x['screen_name'] for x in tweet['entities']['user_mentions']])
+
+            if 'retweeted_status' in tweet: # It is a retweet
+                text = tweet['retweeted_status']['text'] if 'text' in tweet['retweeted_status'] else tweet['retweeted_status']['full_text']
                 try:
-                    qt_status = tweet["quoted_status"]["user"]["text"]
+                    text = tweet['retweeted_status']['extended_tweet']['full_text']
+                    mentions = set([x['screen_name'] for x in tweet['retweeted_status']['extended_tweet']['entities']['user_mentions']])
                 except:
                     pass
-            
-        if 'extended_tweet' in tweet:
-            text = tweet['extended_tweet']['full_text']
-            mentions = set([x['screen_name'] for x in tweet['extended_tweet']['entities']['user_mentions']])
-        
-        text_list.append(text)
-        in_reply_to_status.append(rp_status)
-        in_reply_to_user_id.append(rp_user_id)
-        in_reply_to_screen_name.append(rp_screen_name)
-        rt_screen_name_list.append(rt_screen_name)
-        rt_id_list.append(rt_id)
-        qt_id_list.append(qt_id)
-        qt_screen_name_list.append(qt_screen_name)
-        qt_status_list.append(qt_status)
-        
-        mentions_list.append(mentions)
-        
+                rt_screen_name = tweet['retweeted_status']['user']['screen_name']
+                rt_id = np.int32(tweet['retweeted_status']['id'])
+
+            if 'quoted_status' in tweet: # In reply to tweet data
+                qt_id = np.int32(tweet["quoted_status"]["user"]["id"])
+                qt_screen_name = tweet["quoted_status"]["user"]["screen_name"]
+                qt_status = tweet["quoted_status"]["text"] if 'text' in tweet['quoted_status'] else tweet['quoted_status']['full_text']
+                try:
+                    qt_status = tweet["quoted_status"]["extended_tweet"]['full_text']
+
+                except:
+                    try:
+                        qt_status = tweet["quoted_status"]["user"]["text"]
+                    except:
+                        pass
+
+            if 'extended_tweet' in tweet:
+                text = tweet['extended_tweet']['full_text']
+                mentions = set([x['screen_name'] for x in tweet['extended_tweet']['entities']['user_mentions']])
+
+            text_list.append(text)
+            in_reply_to_status.append(rp_status)
+            in_reply_to_user_id.append(rp_user_id)
+            in_reply_to_screen_name.append(rp_screen_name)
+            rt_screen_name_list.append(rt_screen_name)
+            rt_id_list.append(rt_id)
+            qt_id_list.append(qt_id)
+            qt_screen_name_list.append(qt_screen_name)
+            qt_status_list.append(qt_status)
+
+            mentions_list.append(mentions)
+    print('done reading lines')
+
     data = pd.DataFrame({
         "id" : id_list,
         "screen_name": screen_name_list,
@@ -102,25 +105,29 @@ def tidy_tweets(raw_tweets):
         "in_reply_to_status": in_reply_to_status,
         "mentions": mentions_list,
         "datetime":datetime})
-    
+
     return data
+
 
 users = list(pd.read_csv("data/seed_users.csv").screen_name.values)
 
 class process_tweets():
     def __init__(self, day_to_process):
         self.day_to_process = day_to_process
-        with open('data/raw/seed_tweets/stream_tweets_{}.json'.format(day_to_process)) as json_data:
-            stream_tweets = json_data.readlines()
-        stream_tweets = tidy_tweets(stream_tweets)
-        
-        with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(day_to_process)) as json_data:
-            rest_tweets = json_data.readlines()
-        rest_tweets = tidy_tweets(rest_tweets).drop_duplicates('id').reset_index(drop=True)
 
+        print("tidy stream")
+        stream_tweets = tidy_tweets('data/raw/seed_tweets/stream_tweets_{}.json'.format(day_to_process))
+
+        print("tidy rest")
+        rest_tweets = tidy_tweets('data/raw/seed_tweets/rest_tweets_{}.json'.format(day_to_process))
+
+        print("filtering tweets not in stream")
+        self.tweets = pd.concat([stream_tweets, rest_tweets[~rest_tweets.id.isin(stream_tweets.id)]]).drop_duplicates("id").reset_index(drop=True)
         
-        self.tweets = pd.concat([stream_tweets, rest_tweets[~rest_tweets.id.isin(stream_tweets.id)]]).reset_index(drop=True)
+        print("extract seed")
         self.extract_seed_tweets()
+
+        print("extact_retweets")
         self.extract_seed_retweets()
         
     
