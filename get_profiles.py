@@ -39,7 +39,7 @@ def get_profiles(screen_names_list, n_seeds):
         response = requests.get(url,
                                 auth=oauth)
 
-        with open('data/{}_profiles.json'.format(user_type), 'a') as f: 
+        with open('data/{}_profiles_{}.json'.format(user_type, time.strftime("%y%W")), 'a') as f: 
             json.dump(response.json(), f)
             f.write('\n')
                         
@@ -47,8 +47,8 @@ if __name__ == "__main__":
     seed_users = list(pd.read_csv("data/seed_users.csv").user_id.values)
     retweeters_users = list(pd.read_csv("data/retweeters_users.csv").user_id.values)
 
-    if 'seed_profiles.json' in os.listdir('data/'):
-        with open('data/seed_profiles.json') as json_data:
+    if 'seed_profiles_{}.json'.format(time.strftime("%y%W")) in os.listdir('data/'):
+        with open('data/seed_profiles_{}.json'.format(time.strftime("%y%W"))) as json_data:
             n_seed_profiles = len(json_data.readlines())
             
         if n_seed_profiles >= len(seed_users):
@@ -57,8 +57,8 @@ if __name__ == "__main__":
             seed_users = seed_users[-(len(seed_users) - n_seed_profiles):]
     
     
-    if 'retweeters_profiles.json' in os.listdir('data/'):    
-        with open('data/retweeters_profiles.json') as json_data:
+    if 'retweeters_profiles_{}.json'.format(time.strftime("%y%W")) in os.listdir('data/'):    
+        with open('data/retweeters_profiles_{}.json'.format(time.strftime("%y%W"))) as json_data:
             n_retweeters_profiles = len(json_data.readlines())
         
         if n_retweeters_profiles >= len(retweeters_users):
