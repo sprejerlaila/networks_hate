@@ -1,4 +1,5 @@
 import sys
+import os
 import math
 import time
 import pandas as pd
@@ -7,13 +8,6 @@ from requests_oauthlib import OAuth1
 from accessPoints_Sprejer import TwitterAuth53 as auth_seed
 from accessPoints_Sprejer import TwitterAuth44 as auth0
 from accessPoints_Sprejer import TwitterAuth45 as auth1
-
-seed_users = list(pd.read_csv("data/seed_users.csv").user_id.values)
-
-
-retweeters = pd.read_csv("data/retweeters_users.csv")
-# get only new retweeters
-retweeters_users = list(retweeters[retweeters.get_followers == "Not collected"].user_id.values)
 
 
 oauth_seed = OAuth1(auth_seed.consumer_key, auth_seed.consumer_secret, auth_seed.access_token, auth_seed.access_token_secret)
@@ -53,24 +47,45 @@ def get_friends(user_id_list, n_seeds, oauth=oauth0, n_group = 0, datetime=time.
                 break
             cursor = response.json()['next_cursor']
             
+        with open('data/collected_friends_ids.csv', 'a') as f: 
+            f.write("%s\n" % user_id)
+            
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        get_friends(seed_users + retweeters_users, n_seeds = len(seed_users))
+    seed_users = list(pd.read_csv("data/seed_users.csv").user_id.values)
     
-    elif sys.argv[1] == "seeds":
+    if sys.argv[1] == "seeds":
         print("Getting seeds friends")
         get_friends(seed_users, n_seeds = len(seed_users), oauth = oauth_seed, datetime = time.strftime("%y%m%d%H"))
         
     elif sys.argv[1] == "retweeters":
         print("Getting retweeters friends")
-        n_group = int(sys.argv[2])
-        oauth = oauths[n_group]
-        n_rters = len(retweeters_users)
-        n_per_group = math.ceil(n_rters/len(oauths))
         
-        get_friends(retweeters_users[n_group*n_per_group: (n_group+1)*n_per_group], n_seeds = 0,
-                      oauth=oauth,
-                      n_group = n_group)
+        while True:
+            if 'collected_friends_ids.csv' in os.listdir('data/'):
+                with open('data/collected_friends_ids.csv') as file:
+                    collected_ids = file.read().splitlines()
+            else:
+                collected_ids = []
+ 
+            all_retweeters = pd.read_csv("data/retweeters_users.csv")
+            # get only new retweeters
+            new_retweeters = all_retweeters[~all_retweeters.user_id.isin(collected_ids)].user_id.values
+            
+            if len(new_retweeters) == 0:
+                print('No more users to collect')
+                continue
+            
+            print('collecting %i users' %len(new_retweeters))
+            n_group = int(sys.argv[2])
+            oauth = oauths[n_group]
+            n_rters = len(new_retweeters)
+            n_per_group = math.ceil(n_rters/len(oauths))
+            
+            get_friends(new_retweeters[n_group*n_per_group: (n_group+1)*n_per_group], n_seeds = 0,
+                          oauth=oauth,
+                          n_group = n_group)
+            
+            time.sleep(900)
 
     
 
