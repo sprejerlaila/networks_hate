@@ -148,8 +148,6 @@ class process_tweets():
         
         print("> filtering tweets not in stream")
         self.tweets = pd.concat([stream_tweets, rest_tweets[~rest_tweets.id.isin(stream_tweets.id)]]).drop_duplicates("id").reset_index(drop=True)
-        #self.tweets = rest_tweets
-        self.tweets.to_csv('test.csv', index=False, mode='a')
         
         print("> extract seed")
         self.extract_seed_tweets()
@@ -207,12 +205,5 @@ class process_tweets():
     
 if __name__ == "__main__":
     yesterday = dt.datetime.strftime(dt.datetime.now() - dt.timedelta(1), '%y%m%d')
-    #process_tweets(day_to_process=yesterday)                 
-    # process_tweets(day_to_process='200525')                 
-    # process_tweets(day_to_process='200526')                 
-    #process_tweets(day_to_process='200527')                 
-    process_tweets(day_to_process='200528')                 
-    process_tweets(day_to_process='200529')                 
-    process_tweets(day_to_process='200530')                 
- 
+    process_tweets(day_to_process=yesterday)
     
