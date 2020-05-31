@@ -36,6 +36,7 @@ class get_tweets():
         times = [] # Control rate limit.       
         
         for user_id in users:
+            print(user_id)
             max_id = None
             while True:
                 if len(times) == 900: # if 900 requests were already done
@@ -50,9 +51,12 @@ class get_tweets():
                                 auth=oauth)
                 
                 for tweet in response.json():
-                    tw_date = time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
+                    try:
+                        tw_date = time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
+                    except:
+                        print(response.json())
                     if tw_date > self.since and tw_date < until:
-                        with open('data/raw/seed_tweets/test_rest_tweets_{}.json'.format(time.strftime("%y%m%d", self.since)), 'a') as tf:
+                        with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(time.strftime("%y%m%d", self.since)), 'a') as tf:
                         
                             # Write the json data directly to the file
                             json.dump(tweet, tf)
@@ -69,6 +73,7 @@ class get_tweets():
         times = []
         
         for screen_name in users:
+            print(screen_name)
             
             while True:
                 if len(times) == 180: # if 180 requests were already done
@@ -88,7 +93,7 @@ class get_tweets():
                 for tweet in response['statuses']:
                     tw_date = time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
                     if tw_date > self.since:
-                        with open('data/raw/seed_tweets/test_rest_tweets_{}.json'.format(time.strftime("%y%m%d",self.since)), 'a') as tf:
+                        with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(time.strftime("%y%m%d",self.since)), 'a') as tf:
                         
                             # Write the json data directly to the file
                             json.dump(tweet, tf)
