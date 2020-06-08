@@ -69,7 +69,7 @@ class get_tweets():
                     max_id = tweet['id']
 
     def get_mentions(self, users):
-        next_page_url = "https://api.twitter.com/1.1/search/tweets.json"
+        next_page_url = "https://api.twitter.com/1.1/search/tweets.json?until={}".format(self.until)
         times = []
         
         for screen_name in users:
@@ -84,10 +84,11 @@ class get_tweets():
                             
                 times.append(time.time()) # adding time of the new request
                 
+                
                 response = requests.get(next_page_url,
-                                    params = {"q": screen_name, "count":200, "until":self.until, "tweet_mode": "extended"},
+                                    params = {"q": screen_name, "count":200, "tweet_mode": "extended"},
                                     auth=oauth)
-    
+                
                 response = response.json()
                 
                 for tweet in response['statuses']:
