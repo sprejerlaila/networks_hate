@@ -69,10 +69,10 @@ class get_tweets():
                     max_id = tweet['id']
 
     def get_mentions(self, users):
-        next_page_url = "https://api.twitter.com/1.1/search/tweets.json?until={}".format(self.until)
         times = []
         
         for screen_name in users:
+	    next_page_url = "https://api.twitter.com/1.1/search/tweets.json?until={}".format(self.until)
             print(screen_name)
             
             while True:
