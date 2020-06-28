@@ -38,7 +38,7 @@ def tidy_tweets(file_name):
             
             tweet = json.loads(tweet)
             
-            id_list.append(tweet['id'])
+            id_list.append("id_" + str(tweet['id']))
 
             screen_name = tweet["user"]['screen_name']
             screen_name_list.append(screen_name)
@@ -47,7 +47,7 @@ def tidy_tweets(file_name):
 
             rp_user_id = tweet["in_reply_to_user_id"]
             rp_screen_name = tweet["in_reply_to_screen_name"]
-            rp_status = tweet["in_reply_to_status_id"]
+            rp_status = "id_" + str(tweet["in_reply_to_status_id"])
 
             t = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))
             datetime.append(t)
@@ -70,7 +70,7 @@ def tidy_tweets(file_name):
                 except:
                     pass
                 rt_screen_name = tweet['retweeted_status']['user']['screen_name']
-                rt_id = tweet['retweeted_status']['id']
+                rt_id = "id_" + str(tweet['retweeted_status']['id'])
                 rt_type = 'official'
                 
             if 'quoted_status' in tweet: # In reply to tweet data
@@ -140,51 +140,65 @@ class process_tweets():
         self.day_to_process = day_to_process
 
         print("> tidy stream")
-        stream_tweets = tidy_tweets('data/raw/seed_tweets/stream_tweets_{}.json'.format(day_to_process))
+        self.tweets = tidy_tweets('data/raw/seed_tweets/stream_tweets_{}.json'.format(day_to_process))
+        print("> extract seed")
+        self.extract_seed_tweets()
+        
+        print("> extract retweets")
+        self.extract_seed_retweets()
+        
+        print("> get id values")
+        tweets_ids = self.tweets.id.values
+        del self.tweets
         
         print("> tidy rest")
-        rest_tweets = tidy_tweets('data/raw/seed_tweets/rest_tweets_{}.json'.format(day_to_process))
-
-        
+        self.tweets = tidy_tweets('data/raw/seed_tweets/rest_tweets_{}.json'.format(day_to_process))
         print("> filtering tweets not in stream")
-        self.tweets = pd.concat([stream_tweets, rest_tweets[~rest_tweets.id.isin(stream_tweets.id)]]).drop_duplicates("id").reset_index(drop=True)
-        
+        self.tweets = self.tweets[~self.tweets.id.isin(tweets_ids)]
         print("> extract seed")
         self.extract_seed_tweets()
 
         print("> extact_retweets")
         self.extract_seed_retweets()
+        del self.tweets
+
+        self.unify_daily_followers_list()
         
     
         
     def extract_seed_tweets(self):
-        print("> Extracting seed tweets df, saving to data/processed/seed_tweets/seed_tweets.csv")
-        seed_tweets = self.tweets[self.tweets.screen_name.isin(users)]
-        
+        print("> Extracting seed tweets df, saving to data/processed/seed_tweets/seed_tweets_<week>.csv")
+        seed_tweets = self.tweets[(self.tweets.screen_name.isin(users))&\
+                                  (self.tweets.rt_from_screen_name.isna())&\
+                                      (self.tweets.qt_from_screen_name.isna())&\
+                                          (self.tweets.in_reply_to_screen_name.isna())]
+        print(self.tweets[self.tweets.screen_name.isin(users)])
+        print(seed_tweets.head())
         # Write full dataframe
-        if not os.path.isfile('data/processed/seed_tweets/seed_tweets.csv'):
-            seed_tweets.to_csv("data/processed/seed_tweets/seed_tweets.csv", index=False)
+        if not os.path.isfile('data/processed/seed_tweets/seed_tweets_{}.csv'.format(time.strftime("%y%W"))):
+            seed_tweets.to_csv("data/processed/seed_tweets/seed_tweets_{}.csv".format(time.strftime("%y%W")), index=False)
         else:
-            seed_tweets.to_csv("data/processed/seed_tweets/seed_tweets.csv", index=False, header=False, mode='a')
+            seed_tweets.to_csv("data/processed/seed_tweets/seed_tweets_{}.csv".format(time.strftime("%y%W")), index=False, header=False, mode='a')
         
         print("> Extracting seed tweets_id list, saving to data/seed_tweets_ids.csv")
         # Keep a list of seed tweets ids
+        print('len seed tweets', len(seed_tweets))
         with open('data/seed_tweets_ids.csv', 'a') as f: 
             for tweet_id in seed_tweets.id.values:
                     f.write("%s\n" % tweet_id)
+        self.len_new_tweets = len(seed_tweets)
         
     def extract_seed_retweets(self):
         print("> Extracting retweets from seeds df, saving to data/processed/seed_retweets/retweets_from_seeds.csv")
         with open('data/seed_tweets_ids.csv') as file:
             ids = file.read().splitlines()
-        ids = [int(i) for i in ids]
 
         seed_retweets = self.tweets[self.tweets.rt_from_id.isin(ids)]
-        
-        if not os.path.isfile('data/processed/seed_retweets/retweets_from_seeds.csv'):
-            seed_retweets.to_csv("data/processed/seed_retweets/retweets_from_seeds.csv", index=False)
+        print(len(seed_retweets))
+        if not os.path.isfile('data/processed/seed_retweets/retweets_from_seeds_{}.csv'.format(time.strftime("%y%W"))):
+            seed_retweets.to_csv("data/processed/seed_retweets/retweets_from_seeds_{}.csv".format(time.strftime("%y%W")), index=False)
         else:
-            seed_retweets.to_csv("data/processed/seed_retweets/retweets_from_seeds.csv", index=False, header=False, mode='a')
+            seed_retweets.to_csv("data/processed/seed_retweets/retweets_from_seeds_{}.csv".format(time.strftime("%y%W")), index=False, header=False, mode='a')
         
         
         print("> Extracting retweeters screen_name and id, saving to data/retweeters_users.csv")
@@ -192,18 +206,51 @@ class process_tweets():
             current_retweeters = pd.read_csv('data/retweeters_users.csv')[["screen_name","user_id"]]
             new_retweeters = seed_retweets[~seed_retweets.user_id.isin(current_retweeters.user_id)][["screen_name","user_id"]]
             new_retweeters = new_retweeters.drop_duplicates()
-            all_retweeters = pd.concat([current_retweeters, new_retweeters]).reset_index(drop=True)
-
-        
-        else:
-            all_retweeters = seed_retweets[["screen_name","user_id"]].drop_duplicates()
             
+        else:
+            new_retweeters = seed_retweets[["screen_name","user_id"]].drop_duplicates()
         
-        all_retweeters.to_csv('data/retweeters_users.csv', index=False)
+        new_retweeters.to_csv('data/retweeters_users.csv', index=False, mode='a')
+       
+        report = pd.DataFrame({"date":[self.day_to_process], "new_seed_tweets":[self.len_new_tweets], "n_retweet":[len(seed_retweets)],\
+                "new_rtters":[len(new_retweeters)]})
+        if not os.path.isfile('process_report.csv'):
+            report.to_csv("process_report.csv", index=False)
+        else:
+            report.to_csv("process_report.csv", index=False, header=False, mode='a')
 
-        
+    def unify_daily_followers_list(self):
+        '''Takes all seed and retweeters followers files
+        (different hours or access points) and creates a single dataframe
+        to collect their profiles'''
+        seed_files = os.listdir('data/processed/seed_followers')
+        seed_files = [f for f in seed_files if 'seed_followers_{}'.format(self.day_to_process) in f]
+        print(seed_files)
+        all_files = []
+        for file in seed_files:
+            all_files.append(pd.read_csv('data/processed/seed_followers/{}'.format(file), header = None))
+
+        daily_seed_followers = pd.concat(all_files)
+        daily_seed_followers.columns = ['ego', 'follower']
+        daily_seed_followers.drop_duplicates(['ego','follower'], inplace=True)
+        daily_seed_followers.to_csv('data/processed/seed_followers/seed_daily_followers_{}.csv'.format(self.day_to_process), index=False)
+
+        del daily_seed_followers
+        del all_files
+
+        retweeters_files = os.listdir('data/processed/retweeters_followers')
+        retweeters_files = [f for f in retweeters_files if 'retweeters_followers_{}'.format(self.day_to_process) in f]
+        print(retweeters_files)
+        all_files = []
+        for file in retweeters_files:
+            all_files.append(pd.read_csv('data/processed/retweeters_followers/{}'.format(file), header = None))
+
+        daily_retweeters_followers = pd.concat(all_files)
+        daily_retweeters_followers.columns = ['ego', 'follower']
+        daily_retweeters_followers.drop_duplicates(['ego','follower'], inplace=True)
+        daily_retweeters_followers.to_csv('data/processed/retweeters_followers/retweeters_daily_followers_{}.csv'.format(self.day_to_process), index=False)
+
     
 if __name__ == "__main__":
     yesterday = dt.datetime.strftime(dt.datetime.now() - dt.timedelta(1), '%y%m%d')
     process_tweets(day_to_process=yesterday)
-    
