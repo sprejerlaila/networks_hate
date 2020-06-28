@@ -2,7 +2,7 @@ import time
 import datetime as dt
 import pandas as pd
 import requests
-from accessPoints_Sprejer import TwitterAuth52 as auth
+from accessPoints_Sprejer import TwitterAuth50 as auth
 from requests_oauthlib import OAuth1
 import json
 
@@ -28,15 +28,16 @@ class get_tweets():
         
         print('getting mentions')
         self.get_mentions(users['screen_name'].values)
-        
 
         
     def get_timeline(self, users):
         until = time.strptime(self.until, '%Y-%m-%d')
         times = [] # Control rate limit.       
-        
+        count = 0
         for user_id in users:
+            print(count)
             print(user_id)
+            count = 0
             max_id = None
             while True:
                 if len(times) == 900: # if 900 requests were already done
@@ -56,6 +57,7 @@ class get_tweets():
                     except:
                         print(response.json())
                     if tw_date > self.since and tw_date < until:
+                        count +=1
                         with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(time.strftime("%y%m%d", self.since)), 'a') as tf:
                         
                             # Write the json data directly to the file
@@ -70,11 +72,12 @@ class get_tweets():
 
     def get_mentions(self, users):
         times = []
-        
+        count = 0 
         for screen_name in users:
-	    next_page_url = "https://api.twitter.com/1.1/search/tweets.json?until={}".format(self.until)
+            next_page_url = "https://api.twitter.com/1.1/search/tweets.json?until={}".format(self.until) 
+            print(count)
             print(screen_name)
-            
+            count = 0 
             while True:
                 if len(times) == 180: # if 180 requests were already done
                     if times[-1] - times[0] < 900: # check not exceding the rate limit (15 min window)
@@ -84,16 +87,19 @@ class get_tweets():
                             
                 times.append(time.time()) # adding time of the new request
                 
-                
                 response = requests.get(next_page_url,
-                                    params = {"q": screen_name, "count":200, "tweet_mode": "extended"},
+                                    params = {"q": screen_name, "count":200,  "tweet_mode": "extended"},
                                     auth=oauth)
-                
+    
                 response = response.json()
-                
+                try: 
+                    response['statuses']
+                except:
+                    print(response)
                 for tweet in response['statuses']:
                     tw_date = time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y')
                     if tw_date > self.since:
+                        count +=1
                         with open('data/raw/seed_tweets/rest_tweets_{}.json'.format(time.strftime("%y%m%d",self.since)), 'a') as tf:
                         
                             # Write the json data directly to the file
@@ -110,6 +116,5 @@ if __name__ == "__main__":
     yesterday = dt.datetime.strftime(dt.datetime.now() - dt.timedelta(1), '%Y-%m-%d')
     today = time.strftime("%Y-%m-%d")
     get_tweets(since=yesterday, until=today)
-    
     
     
