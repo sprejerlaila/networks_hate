@@ -2,6 +2,7 @@ import sys
 import os
 import math
 import time
+import datetime as dt
 import pandas as pd
 import requests
 from requests_oauthlib import OAuth1
@@ -68,6 +69,9 @@ def get_followers(user_id_list, n_seeds, oauth=oauth0, n_group = 0, datetime=tim
     
     for idx, user_id in enumerate(user_id_list):
         user_type = "seed" if idx < n_seeds else "retweeters"
+        if user_type  == 'retweeters' and int(dt.datetime.now().strftime("%H")) == 2: # Break because new collection will start
+            print('Its a brand new day')
+            break
         cursor = -1 # Controls pagination
         
         while cursor != 0: # When cursor == 0 means end of pagination
@@ -92,6 +96,16 @@ def get_followers(user_id_list, n_seeds, oauth=oauth0, n_group = 0, datetime=tim
                         f.write("%s\n" % user_id)
             except:
                 print(user_id, response.json())
+                if 'errors' in response.json() and response.json()['errors'][0]['code'] == 88:
+                    print('waiting the time needed')
+                    time.sleep(900)
+                    
+                elif 'error' in response.json() and response.json()['error'] == 'Not authorized.':
+                    with open('data/private_followers_ids.csv', 'a') as f:
+                        f.write("%s\n" % user_id)
+                else:
+                    with open('data/errors_followers_ids.csv', 'a') as f:
+                        f.write(str(user_id) + "," + response.text + "\n")
                 break
             cursor = response.json()['next_cursor']
         
@@ -100,6 +114,7 @@ if __name__ == "__main__":
     print(type(seed_users[0])) 
     if sys.argv[1] == "seeds":
         print("Getting seeds followers")
+        #get_followers(seed_users, n_seeds = len(seed_users), oauth = oauth_seed)#, datetime = time.strftime("%y%m%d%H"))
         n_group = int(sys.argv[2])
         oauth = oauths_seed[n_group]
         n_rters = len(seed_users)
@@ -117,16 +132,23 @@ if __name__ == "__main__":
                 collected_ids = file.read().splitlines()
         else:
             collected_ids = []
+
+        if 'private_followers_ids.csv' in os.listdir('data/'):
+            with open('data/private_followers_ids.csv') as file:
+                collected_ids += file.read().splitlines()
+        
+        if 'errors_collected_followers_ids.csv' in os.listdir('data/'):
+            with open('data/errors_followers_ids.csv') as file:
+                collected_ids += file.read().splitlines()
  
         all_retweeters = pd.read_csv("data/retweeters_users.csv")
         print(len(all_retweeters))
         # get only new retweeters
         new_retweeters = all_retweeters[~all_retweeters.user_id.isin(collected_ids)].user_id.values
-            
         if len(new_retweeters) == 0:
             print('No more users to collect')
         
-	else:
+        else:
             print('collecting %i users' %len(new_retweeters))
             n_group = int(sys.argv[2])
             oauth = oauths[n_group]
@@ -136,7 +158,42 @@ if __name__ == "__main__":
             get_followers(new_retweeters[n_group*n_per_group: (n_group+1)*n_per_group], n_seeds = 0,
                           oauth=oauth,
                           n_group = n_group)
-            
-            
+        
+        time.sleep(900)   
+        print('starting big users')
+        # Start collecting big users
+        if 'collected_followers_ids.csv' in os.listdir('data/'):
+            with open('data/collected_followers_ids.csv') as file:
+                collected_ids = file.read().splitlines()
+        else:
+            collected_ids = []
+
+        if 'private_followers_ids.csv' in os.listdir('data/'):
+            with open('data/private_followers_ids.csv') as file:
+                collected_ids += file.read().splitlines()
+
+        if 'errors_collected_followers_ids.csv' in os.listdir('data/'):
+            with open('data/errors_followers_ids.csv') as file:
+                collected_ids += file.read().splitlines()
+
+        all_retweeters = pd.read_csv("data/retweeters_users_cc.csv")
+        print(len(all_retweeters))
+        
+        # get only new retweeters
+        new_retweeters = all_retweeters[~all_retweeters.user_id.isin(collected_ids)].user_id.values
+        all_retweeters.head().to_csv('started_big_user_collection_{}.csv'.format(sys.argv[2]))
+        if len(new_retweeters) == 0:
+            print('No more users to collect')
+        
+        else:
+            print('collecting %i users' %len(new_retweeters))
+            n_group = int(sys.argv[2])
+            oauth = oauths[n_group]
+            n_rters = len(new_retweeters)
+            n_per_group = math.ceil(n_rters/len(oauths))
+
+            get_followers(new_retweeters[n_group*n_per_group: (n_group+1)*n_per_group], n_seeds = 0,
+                          oauth=oauth,
+                          n_group = n_group) 
             
             
