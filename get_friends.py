@@ -5,12 +5,17 @@ import time
 import pandas as pd
 import requests
 from requests_oauthlib import OAuth1
-from accessPoints_Sprejer import TwitterAuth53 as auth_seed
+from accessPoints_Sprejer import TwitterAuth53 as auth_seed0
+from accessPoints_Sprejer import TwitterAuth54 as auth_seed1
+from accessPoints_Sprejer import TwitterAuth82 as auth_seed2
 from accessPoints_Sprejer import TwitterAuth44 as auth0
 from accessPoints_Sprejer import TwitterAuth45 as auth1
 
 
-oauth_seed = OAuth1(auth_seed.consumer_key, auth_seed.consumer_secret, auth_seed.access_token, auth_seed.access_token_secret)
+oauth_seed0 = OAuth1(auth_seed0.consumer_key, auth_seed0.consumer_secret, auth_seed0.access_token, auth_seed0.access_token_secret)
+oauth_seed1 = OAuth1(auth_seed1.consumer_key, auth_seed1.consumer_secret, auth_seed1.access_token, auth_seed1.access_token_secret)
+oauth_seed2 = OAuth1(auth_seed2.consumer_key, auth_seed2.consumer_secret, auth_seed2.access_token, auth_seed2.access_token_secret)
+oauths_seed = [oauth_seed0, oauth_seed1]#, oauth_seed2]
 
 oauth0 = OAuth1(auth0.consumer_key, auth0.consumer_secret, auth0.access_token, auth0.access_token_secret)
 
@@ -23,6 +28,7 @@ def get_friends(user_id_list, n_seeds, oauth=oauth0, n_group = 0, datetime=time.
     times = [] # Control not exceeding the rate limit
     
     for idx, user_id in enumerate(user_id_list):
+        print(user_id)
         user_type = "seed" if idx < n_seeds else "retweeters"
         cursor = -1 # Controls pagination
         
@@ -55,8 +61,15 @@ if __name__ == "__main__":
     
     if sys.argv[1] == "seeds":
         print("Getting seeds friends")
-        get_friends(seed_users, n_seeds = len(seed_users), oauth = oauth_seed, datetime = time.strftime("%y%m%d%H"))
-        
+        n_group = int(sys.argv[2])
+        oauth = oauths_seed[n_group]
+        n_rters = len(seed_users)
+        n_per_group = math.ceil(n_rters/len(oauths_seed))
+  
+        get_friends(seed_users[n_group*n_per_group: (n_group+1)*n_per_group], n_seeds = len(seed_users),
+                oauth=oauth,
+                n_group = n_group)
+
     elif sys.argv[1] == "retweeters":
         print("Getting retweeters friends")
         
