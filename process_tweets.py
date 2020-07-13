@@ -57,7 +57,7 @@ def tidy_tweets(file_name):
 
             text = tweet['text'] if "text" in tweet else tweet['full_text']
 
-            rt_screen_name, rt_id, rt_type, qt_id, qt_screen_name, qt_status = None, None, None, None, None, None
+            rt_screen_name, rt_user_id,  rt_id, rt_type, qt_id, qt_screen_name, qt_status = None, None, None, None, None, None, None
 
             mentions = set([x['screen_name'] for x in tweet['entities']['user_mentions']])
 
@@ -166,7 +166,7 @@ class process_tweets():
         self.extract_seed_retweets()
         del self.tweets
 
-        #self.unify_daily_followers_list()
+        self.unify_daily_followers_list()
         
     
         
