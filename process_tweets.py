@@ -4,6 +4,7 @@ import time
 import os
 import datetime as dt
 import re
+import wget
 
     
 def tidy_tweets(file_name):
@@ -24,9 +25,12 @@ def tidy_tweets(file_name):
     rt_screen_name_list, rt_user_id_list, rt_id_list, rt_type_list = [], [], [], []
     qt_screen_name_list, qt_id_list, qt_status_list  = [], [], []
     
-    mentions_list = []
+    mentions_list, hashtags  = [], []
 
     datetime = []
+    photos, videos, gifs = [], [], []
+
+    urls, trunc_urls = [], []
     # location = []
 
     # retweet_count = []
@@ -35,8 +39,11 @@ def tidy_tweets(file_name):
     with open(file_name) as json_data:
         for idx, tweet in enumerate(json_data):
             
-            tweet = json.loads(tweet)
-            
+            try:
+                tweet = json.loads(tweet)
+            except:
+                print('could not open line ',idx)
+                continue
             id_list.append("id_" + str(tweet['id']))
 
             screen_name = tweet["user"]['screen_name']
@@ -118,6 +125,35 @@ def tidy_tweets(file_name):
             qt_status_list.append(qt_status)
             mentions_list.append(mentions)
 
+            photo, video, gif = [], [], []
+            if "media" in tweet['entities']:
+                for media in tweet['extended_entities']['media']:
+                    if media['type'] == 'photo':
+                        photo.append(media['media_url'])
+                    elif media['type'] == 'video':
+                        video.append(media['video_info']['variants'][0]['url'])
+                    elif media['type'] == 'animated_gif':
+                        gif.append(media['video_info']['variants'][0]['url'])
+            
+            photos.append(photo)
+            videos.append(video)
+            gifs.append(gif)
+
+            if len(tweet['entities']['urls']) > 0:
+                url = [item['expanded_url'] for item in tweet['entities']['urls']]
+                urls.append(url)
+                trunc_urls.append([re.search('://(www.)?([a-zA-Z0-9.]+).',x).group(2) for x in url])
+            else:
+                urls.append(None)
+                trunc_urls.append(None)
+
+            if len(tweet['entities']['hashtags']) > 0  :
+                hashtags.append(
+                    [item['text'] for item in tweet['entities']['hashtags']])
+            else:
+                hashtags.append(None)
+
+
     data = pd.DataFrame({
         "id" : id_list,
         "screen_name": screen_name_list,
@@ -132,7 +168,13 @@ def tidy_tweets(file_name):
         "in_reply_to_status": in_reply_to_status,
         "mentions": mentions_list,
         "datetime":datetime,
-        "rt_type": rt_type_list})
+        "rt_type": rt_type_list,
+        "url":urls,
+        "trunc_url":trunc_urls,
+        "hashtags":hashtags,
+        "photos":photos,
+        "videos":videos,
+        "gifs":gifs})
 
     return data
 
@@ -146,7 +188,7 @@ class process_tweets():
         print("> tidy stream")
         self.tweets = tidy_tweets('data/raw/seed_tweets/stream_tweets_{}.json'.format(day_to_process))
         print("> extract seed")
-        self.extract_seed_tweets()
+        self.extract_seed_tweets(get_media=True)
         
         print("> extract retweets")
         self.extract_seed_retweets()
@@ -160,7 +202,7 @@ class process_tweets():
         print("> filtering tweets not in stream")
         self.tweets = self.tweets[~self.tweets.id.isin(tweets_ids)]
         print("> extract seed")
-        self.extract_seed_tweets()
+        self.extract_seed_tweets(get_media=True)
 
         print("> extact_retweets")
         self.extract_seed_retweets()
@@ -170,13 +212,38 @@ class process_tweets():
         
     
         
-    def extract_seed_tweets(self):
+    def extract_seed_tweets(self, get_media=False):
         print("> Extracting seed tweets df, saving to data/processed/seed_tweets/seed_tweets_<week>.csv")
         seed_tweets = self.tweets[(self.tweets.screen_name.isin(users))&\
                                   (self.tweets.rt_from_screen_name.isna())&\
                                       (self.tweets.qt_from_screen_name.isna())&\
-                                          (self.tweets.in_reply_to_screen_name.isna())]
+                                          (self.tweets.in_reply_to_screen_name.isna())].drop_duplicates('id')
         self.len_new_tweets = len(seed_tweets)
+        
+        if get_media:
+            for idx, row in seed_tweets.iterrows():
+
+                if len(row['photos']) > 0:
+                    for photo in row['photos']:
+                        try:
+                            wget.download(photo, "data/media_by_tweet/{}.jpg".format(row['id']))
+                        except:
+                            pass
+
+                if len(row['videos']) > 0:
+                    for video in row['videos']:
+                        try:
+                            wget.download(video, "data/media_by_tweet/{}.mp4".format(row['id']))
+                        except:
+                            pass
+
+                if len(row['gifs']) > 0:
+                    for gif in row['gifs']:
+                        try:
+                            wget.download(gif, "data/media_by_tweet/{}.mp4".format(row['id']))
+                        except:
+                            pass
+        
         # Write full dataframe
         if not os.path.isfile('data/processed/seed_tweets/seed_tweets_{}.csv'.format(time.strftime("%y%W"))):
             seed_tweets.to_csv("data/processed/seed_tweets/seed_tweets_{}.csv".format(time.strftime("%y%W")), index=False)
@@ -270,13 +337,21 @@ class process_tweets():
         print(retweeters_files)
         all_files = []
         for file in retweeters_files:
-            all_files.append(pd.read_csv('data/processed/retweeters_followers/{}'.format(file), header = None))
+            print(file)
+            try:
+                all_files.append(pd.read_csv('data/processed/retweeters_followers/{}'.format(file), header = None))
+            except Exception as e:
+                print(e)
 
-        daily_retweeters_followers = pd.concat(all_files)
+        daily_retweeters_followers = pd.concat(all_files[:8])
         daily_retweeters_followers.columns = ['ego', 'follower']
         daily_retweeters_followers.drop_duplicates(['ego','follower'], inplace=True)
-        daily_retweeters_followers.to_csv('data/processed/retweeters_followers/retweeters_daily_followers_{}.csv'.format(self.day_to_process), index=False)
+        daily_retweeters_followers.to_csv('data/processed/retweeters_followers/retweeters_daily_followers_{}_0.csv'.format(self.day_to_process), index=False)
 
+        daily_retweeters_followers = pd.concat(all_files[8:])
+        daily_retweeters_followers.columns = ['ego', 'follower']
+        daily_retweeters_followers.drop_duplicates(['ego','follower'], inplace=True)
+        daily_retweeters_followers.to_csv('data/processed/retweeters_followers/retweeters_daily_followers_{}_1.csv'.format(self.day_to_process), index=False)
     
 if __name__ == "__main__":
     yesterday = dt.datetime.strftime(dt.datetime.now() - dt.timedelta(1), '%y%m%d')
