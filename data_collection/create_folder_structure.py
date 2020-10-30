@@ -7,8 +7,6 @@ Created on Fri Oct 30 11:47:33 2020
 """
 import os
 
-os.mkdir('data')
-
 os.mkdir('data/raw')
 os.mkdir('data/processed')
 
