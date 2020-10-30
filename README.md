@@ -1,17 +1,80 @@
 # Disrupting networks of online hate - Data collection
 
-Files:
+## Folder structure
+
+```
+project
+|   stream_tweets.py
+|   get_rest_tweets.py
+|   get_followers.py
+|   get_friends.py
+|   get_profiles.py
+|   process_tweets.py
+│
+└───data
+│   │   seed_users.csv
+│   │   retweeters_users.csv
+│   │
+│   └───raw
+│   │      stream_tweets_yymmdd.json
+│   │      rest_tweets_yymmdd.json
+│   │      ...
+│   │   
+│   └───processed
+│   │   │     
+│   │   └───seed_tweets
+│   │   │       	seed_tweets_yyww.json
+│   │   │       	...
+│   │   │
+│   │   └───seed_retweets
+│   │   │       	seed_retweets_yyww.json
+│   │   │       	...
+│   │   │
+│   │   └───seed_followers
+│   │   │       	seed_followers_yymmdd.json
+│   │   │       	...
+│   │   │
+│   │   └───seed_friends
+│   │   │       	seed_friends_yymmdd.json
+│   │   │       	...
+│   │   │
+│   │   └───retweeters_followers
+│   │   │       	retweeters_followers_yymmdd.json
+│   │   │		collected_followers_ids.csv
+│   │   │		errors_followers_ids.csv
+│   │   │       	...
+│   │   │       	
+│   │   └───media
+│   │   	id_xxxxxxx.jpg
+│   │   	id_xxxxxxx.mp4
+│   │   	...
+│   │
+│   └───profiles
+│   │		seed_profiles_yyww.json
+│   │		retweeters_profiles_yyww.json
+│   │		collected_retweeters_profiles.csv
+│   │   	...
+│   │
+│   └───botometer
+│   │		botometer.json
+│   │		collected_botometer_ids.csv
+│   │		error_botometer_ids.csv
+│   │		nonexistent_botometer_ids.csv
+
+```
+
+## File details:
 - **stream_tweets.py:** 
   
   input: seed_users.csv
   
-	output: stream_tweets_\<date\>.json
+	output: stream_tweets_yymmdd.json
 	
 - **get_rest_tweets.py:** 
 
 	input: seed_users.csv	
   	
-	output: rest_tweets_\<date\>.json
+	output: rest_tweets_yymmdd.json
 	
 	- get_timeline():
 	
@@ -48,7 +111,7 @@ Files:
 
 	input: seed_users.csv; retweeters_users.csv
   
-  output: \<seed|retweeters\>\_followers_\<date\>.csv
+  output: \<seed|retweeters\>\_followers_yymmdd.csv
 	
 - **get_friends.py:** 
 
@@ -56,7 +119,7 @@ Files:
 
 	input: seed_users.csv; retweeters_users.csv
   
-  output: \<seed|retweeters\>\_friends_\<date\>.csv
+  output: seed_friends_yymmdd.csv
   
 - **get_profiles.py:** 
 
@@ -64,7 +127,6 @@ Files:
 
 	input: seed_users.csv; retweeters_users.csv
   
-  output: update seed_profiles.json; retweeters_profiles.json
+  output: update seed_profiles_yyww.json; retweeters_profiles_yyww.json
 	
-
     
