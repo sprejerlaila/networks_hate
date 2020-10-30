@@ -68,13 +68,13 @@ project
   
   input: seed_users.csv
   
-	output: stream_tweets_\<date\>.json
+	output: stream_tweets_yymmdd.json
 	
 - **get_rest_tweets.py:** 
 
 	input: seed_users.csv	
   	
-	output: rest_tweets_\<date\>.json
+	output: rest_tweets_yymmdd.json
 	
 	- get_timeline():
 	
@@ -111,7 +111,7 @@ project
 
 	input: seed_users.csv; retweeters_users.csv
   
-  output: \<seed|retweeters\>\_followers_\<date\>.csv
+  output: \<seed|retweeters\>\_followers_yymmdd.csv
 	
 - **get_friends.py:** 
 
@@ -119,7 +119,7 @@ project
 
 	input: seed_users.csv; retweeters_users.csv
   
-  output: \<seed|retweeters\>\_friends_\<date\>.csv
+  output: seed_friends_yymmdd.csv
   
 - **get_profiles.py:** 
 
@@ -127,6 +127,6 @@ project
 
 	input: seed_users.csv; retweeters_users.csv
   
-  output: update seed_profiles.json; retweeters_profiles.json
+  output: update seed_profiles_yyww.json; retweeters_profiles_yyww.json
 	
     
