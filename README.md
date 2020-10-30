@@ -2,6 +2,8 @@
 
 Hello! This repo contains the full code used for the data collection of the networks of hate project.
 
+See data_collection folder for details and code.
+
 This includes: 
 
 	- Continuous streaming of organic tweets for a list of seed users
