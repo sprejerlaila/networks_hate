@@ -14,8 +14,6 @@ project
 └───data
 │   │   seed_users.csv
 │   │   retweeters_users.csv
-│   │   collected_followers_ids.csv
-│   │   errors_followers_ids.csv
 │   │
 │   └───raw
 │   │      stream_tweets_yymmdd.json
@@ -42,6 +40,8 @@ project
 │   │   │
 │   │   └───retweeters_followers
 │   │   │       	retweeters_followers_yymmdd.json
+│   │   │		collected_followers_ids.csv
+│   │   │		errors_followers_ids.csv
 │   │   │       	...
 │   │   │       	
 │   │   └───media
