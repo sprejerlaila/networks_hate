@@ -10,10 +10,12 @@ project
 |   get_friends.py
 |   get_profiles.py
 |   process_tweets.py
+|   get_botometer.py
 │
 └───data
 │   │   seed_users.csv
 │   │   retweeters_users.csv
+│   │   seed_tweets_ids.csv
 │   │
 │   └───raw
 │   │      stream_tweets_yymmdd.json
