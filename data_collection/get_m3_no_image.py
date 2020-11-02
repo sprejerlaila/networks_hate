@@ -37,7 +37,7 @@ def prepare_profiles_for_m3(file, n_file):
         collected_profiles.add(prof['id'])        
         prof['lang'] = get_lang(prof['id_str'])
         
-        with open('../data/profiles/processed/profiles_{}.json'.format(n_file), 'a') as tf:
+        with open('../data/profiles/processed/clean_{}'.format(file), 'a') as tf:
             json.dump(prof, tf)
             tf.write('\n')
 
@@ -49,7 +49,7 @@ def get_m3_no_image(file, n_file):
     '''
     
     m3 = M3Inference(use_full_model=False) # Because we don't have the profile images
-    pred = m3.infer('../data/profiles/processed/{}'.format(file))
+    pred = m3.infer('../data/profiles/processed/clean_{}'.format(file))
     
     # For simplicity save to pickle because output is a dict
     pickle.dump(pred, open( "processed/m3_no_image{}.p".format(n_file), "wb"))
