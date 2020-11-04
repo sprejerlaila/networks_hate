@@ -63,6 +63,10 @@ project
 │   │		collected_botometer_ids.csv
 │   │		error_botometer_ids.csv
 │   │		nonexistent_botometer_ids.csv
+│   │
+│   └───m3
+│   │	  m3_retweeters_profiles_yyww.pickle
+
 
 ```
 
