@@ -53,7 +53,7 @@ def tidy_tweets(file_name):
 
             rp_user_id = tweet["in_reply_to_user_id"]
             rp_screen_name = tweet["in_reply_to_screen_name"]
-            rp_status = "id_" + str(tweet["in_reply_to_status_id"])
+            rp_status = "id_" + str(tweet["in_reply_to_status_id"]) if tweet["in_reply_to_status_id"] is not None else None
 
             t = time.strftime('%Y-%m-%d %H:%M:%S', time.strptime(tweet['created_at'],'%a %b %d %H:%M:%S +0000 %Y'))
             datetime.append(t)
@@ -123,7 +123,7 @@ def tidy_tweets(file_name):
             qt_id_list.append(qt_id)
             qt_screen_name_list.append(qt_screen_name)
             qt_status_list.append(qt_status)
-            mentions_list.append(mentions)
+            mentions_list.append(", ".join(list(mentions)))
 
             photo, video, gif = [], [], []
             if "media" in tweet['entities']:
@@ -135,23 +135,29 @@ def tidy_tweets(file_name):
                     elif media['type'] == 'animated_gif':
                         gif.append(media['video_info']['variants'][0]['url'])
             
-            photos.append(photo)
-            videos.append(video)
-            gifs.append(gif)
+            photos.append(", ".join(photo))
+            videos.append(", ".join(video))
+            gifs.append(", ".join(gif))
+
 
             if len(tweet['entities']['urls']) > 0:
-                url = [item['expanded_url'] for item in tweet['entities']['urls']]
-                urls.append(url)
-                trunc_urls.append([re.search('://(www.)?([a-zA-Z0-9.]+).',x).group(2) for x in url])
+                if "extended_tweet" in tweet:
+                    url = [item['expanded_url'] for item in tweet['extended_tweet']['entities']['urls']]
+                else:
+                    url = [item['expanded_url'] for item in tweet['entities']['urls']]
+                
+                urls.append(", ".join(url))
+                trunc_urls.append(", ".join([re.search('://(www.)?([a-zA-Z0-9.-]+)',x).group(2) for x in url]))
+                
             else:
-                urls.append(None)
-                trunc_urls.append(None)
+                urls.append("")
+                trunc_urls.append("")
 
             if len(tweet['entities']['hashtags']) > 0  :
                 hashtags.append(
-                    [item['text'] for item in tweet['entities']['hashtags']])
+                    ", ".join([item['text'] for item in tweet['entities']['hashtags']]))
             else:
-                hashtags.append(None)
+                hashtags.append("")
 
 
     data = pd.DataFrame({
@@ -187,6 +193,7 @@ class process_tweets():
 
         print("> tidy stream")
         self.tweets = tidy_tweets('data/raw/seed_tweets/stream_tweets_{}.json'.format(day_to_process))
+        
         print("> extract seed")
         self.extract_seed_tweets(get_media=True)
         
@@ -199,6 +206,7 @@ class process_tweets():
         
         print("> tidy rest")
         self.tweets = tidy_tweets('data/raw/seed_tweets/rest_tweets_{}.json'.format(day_to_process))
+        
         print("> filtering tweets not in stream")
         self.tweets = self.tweets[~self.tweets.id.isin(tweets_ids)]
         print("> extract seed")
@@ -356,3 +364,4 @@ class process_tweets():
 if __name__ == "__main__":
     yesterday = dt.datetime.strftime(dt.datetime.now() - dt.timedelta(1), '%y%m%d')
     process_tweets(day_to_process=yesterday)
+    
