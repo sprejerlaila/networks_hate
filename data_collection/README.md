@@ -66,6 +66,9 @@ project
 │   │
 │   └───m3
 │   │	  m3_retweeters_profiles_yyww.pickle
+│   │
+│   └───perspective
+│   │	  perspective_tweets_ww.json
 
 
 ```
