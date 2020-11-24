@@ -232,21 +232,21 @@ class process_tweets():
             for idx, row in seed_tweets.iterrows():
 
                 if len(row['photos']) > 0:
-                    for photo in row['photos']:
+                    for photo in row['photos'].split(", "):
                         try:
                             wget.download(photo, "data/media_by_tweet/{}.jpg".format(row['id']))
                         except:
                             pass
 
                 if len(row['videos']) > 0:
-                    for video in row['videos']:
+                    for video in row['videos'].split(", "):
                         try:
                             wget.download(video, "data/media_by_tweet/{}.mp4".format(row['id']))
                         except:
                             pass
 
                 if len(row['gifs']) > 0:
-                    for gif in row['gifs']:
+                    for gif in row['gifs'].split(", "):
                         try:
                             wget.download(gif, "data/media_by_tweet/{}.mp4".format(row['id']))
                         except:
