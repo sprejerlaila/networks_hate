@@ -47,7 +47,7 @@ getToxicity = function(text, idx, this.script = 1,
       key = api_key
     )
     #Sys.sleep(1)
-    text_scores$idx = idx[[i]]
+    text_scores$id = idx[[i]]
     #text_scores$text = text[[i]]
     
     write.table(text_scores, file_name,
@@ -66,7 +66,7 @@ week_to_process = as.numeric(args[1])
 print(paste("args", api.choice, "week to process", week_to_process))
 
 tweets <- readr::read_csv(paste("data/raw/seed_tweets_20",week_to_process,".csv", sep=""))
-tweets <- tweets[!is.na(tweets$text), ]
+tweets <- tweets[!is.na(tweets$text), ] %>% unique()
 
 tweets$text <- str_replace_all(tweets$text, "@\\S+", "@username")
 tweets$text <- str_replace_all(tweets$text, "http\\S+", "url")
@@ -75,3 +75,10 @@ file_name <- paste("perspective/perspective_tweets_",week_to_process,".csv",sep 
 
 getToxicity(text = tweets$text, idx = tweets$id, api.choice = api.choice,
             file_name = file_name)
+
+perspective <- readr::read_csv(file_name)
+
+all_tweets <- merge(tweets, perspective[c('id','TOXICITY')],how='left')
+
+write.table(all_tweets, 'perspective/all_seed_tweets_with_scores.csv',
+            sep = ",", col.names = !file.exists(file_name), row.names = F, append = T)
