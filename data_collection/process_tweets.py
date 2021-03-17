@@ -185,7 +185,7 @@ def tidy_tweets(file_name):
     return data
 
 
-users = list(pd.read_csv("data/seed_users.csv").screen_name.values)
+user_ids = list(pd.read_csv("data/seed_users.csv").user_id.values)
 
 class process_tweets():
     def __init__(self, day_to_process):
@@ -222,7 +222,7 @@ class process_tweets():
         
     def extract_seed_tweets(self, get_media=False):
         print("> Extracting seed tweets df, saving to data/processed/seed_tweets/seed_tweets_<week>.csv")
-        seed_tweets = self.tweets[(self.tweets.screen_name.isin(users))&\
+        seed_tweets = self.tweets[(self.tweets.user_id.isin(user_ids))&\
                                   (self.tweets.rt_from_screen_name.isna())&\
                                       (self.tweets.qt_from_screen_name.isna())&\
                                           (self.tweets.in_reply_to_screen_name.isna())].drop_duplicates('id')
